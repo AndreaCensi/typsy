@@ -1,24 +1,25 @@
 from contracts import contract
 import yaml
 from pprint import pformat
-from sts.has_comps import HasComponents
+from sts.has_comps import HasComponents, get_sts_type
 from sts.natives import PGNative, PGList
 from sts.variable import Variable
+from pyparsing import ParseException, ParseFatalException
+from contracts.interface import Where, ContractSyntaxError
 
-# names = {
-#     'map': Mapping,
-#     'prod': Product,
-#     'gprod': GProduct,
-#     'bb': BlackBox,
-#     'os': OrbitSpace,
-#     'bit': bit,
-#     'interval': Interval,
-#     'aut': Automorphism,
-#     'product': ProductSpace,
-#     'sp': StochasticProcess,
-#     Configuration.short: Configuration,
-#     Parameter.short: Parameter
-# }
+@contract(string='str')
+def parse_spec(string, expr=None):
+    if expr is None:
+        expr = get_sts_type()
+    try:
+        c = expr.parseString(string, parseAll=True)[0]
+        assert isinstance(c, HasComponents), 'Want HasComponents, not %r' % c
+        return c
+    except (ParseException, ParseFatalException) as e:
+        where = Where(string, line=e.lineno, column=e.col)
+        msg = '%s' % e
+        raise ContractSyntaxError(msg, where=where)
+
 
 def parse_yaml_spec(s):
     p = GBParser()

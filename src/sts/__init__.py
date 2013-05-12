@@ -4,3 +4,7 @@ from .natives import as_gb
 
 
 from . import variable
+from sts.has_comps import get_sts_type
+
+
+

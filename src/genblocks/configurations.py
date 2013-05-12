@@ -14,6 +14,17 @@ class Parameter(HasComponents):
     def __str__(self):
         return '%s:%s' % (self.name, self.contract)
     
+    @staticmethod
+    def get_parsing_expr():
+        return None
+    
+    @staticmethod
+    def get_parsing_examples():
+        return """
+            P(name:int)
+
+        """
+
 new_contract('parameter', Parameter)
     
 class Configuration(HasComponents):
@@ -29,6 +40,9 @@ class Configuration(HasComponents):
         return 'Config(%s)' % plist
     
     
+    @staticmethod
+    def get_parsing_expr():
+        return None
 #     
 #     
 # 'configuration': {'parameters': [{'contract': 'none|int,>=1',

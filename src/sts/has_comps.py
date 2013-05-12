@@ -1,14 +1,46 @@
 from contracts import contract
 from contracts.main import get_all_arg_names
 from sts.exceptions import FailedMatch, NotMatch
-from abc import ABCMeta
+from pyparsing import Forward, MatchFirst, ParserElement
 
+ParserElement.enablePackrat()
 
+sts_type = Forward()
+sts_type.setName('sts_type')
+sts_type_final = None
+
+simple_sts_type = Forward()
+
+def get_sts_type():
+    global sts_type_final
+    if sts_type_final is not None:
+        # print('reusing')
+        return sts_type_final
+    else:
+        simple_exprs = []
+        complex_exprs = []
+        for cls in HasComponents.klasses.values(): 
+            pexpr = cls.get_parsing_expr()
+            if pexpr is not None:
+                if not isinstance(pexpr, tuple):
+                    msg = 'Could not %r' % cls
+                    raise Exception(msg)
+                simple, expr = pexpr
+                if simple:
+                    simple_exprs.append(expr)
+                else:
+                    complex_exprs.append(expr)
+        # print('creating from')
+        # print simple_exprs
+        simple_sts_type << MatchFirst(simple_exprs)
+        sts_type << (simple_sts_type | MatchFirst(complex_exprs))
+        sts_type_final = sts_type
+        sts_type_final.setName('sts_type_final')
+        # print sts_type
+        # print('/created')
+        return sts_type_final
+    
 class HasMeta(type):
-    aliases = []
-    tmp_config = []
-    tmp_input = []
-    tmp_output = []
 
     def __init__(cls, clsname, bases, clsdict):  # @UnusedVariable
         # Do not do this for the superclasses 
@@ -16,7 +48,9 @@ class HasMeta(type):
             return
         short = cls.short
         HasComponents.klasses[short] = cls
-        
+        if sts_type_final is not None:
+            print('warning, adding %r but already created parsing' % short)
+            
 
 class HasComponents():
 
@@ -38,6 +72,7 @@ class HasComponents():
                 self.debug('%r is not a HasComponents' % k)
         return cv
     
+    
     def match(self, variables, other):
         self.debug('match generic (vars: %s, other=%s)' % (variables, other))
         if not type(self) == type(other):
@@ -48,7 +83,7 @@ class HasComponents():
         
     def __eq__(self, other):
         if not type(self) == type(other):
-            self.debug('different type')
+            # self.debug('different type')
             return False 
         for k, a in self.get_components_values().items():
             b = other.__dict__[k]
@@ -115,19 +150,22 @@ class HasComponents():
         
         return klass(**kwargs)
     
+    @staticmethod
+    def get_parsing_examples():
+        return ""
+
     def debug(self, s):
         print(' ' * (1 + HasComponents.debug_level) + '-' + (' %60s ' % self) + (s))
-              
+            
     debug_level = 0
     klasses = {}
     names = {}
      
+    @staticmethod
+    def get_parsing_expr():
+        raise NotImplementedError()
+    
 def sts_symbol(n, s):
     HasComponents.names[n] = s 
- 
-# def sts_class(k):
-#     HasComponents.klasses[k.short] = k
-#     return k
-
-
+  
 

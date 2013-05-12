@@ -1,9 +1,9 @@
-from genblocks.interfaces import Mapping, Space
-from genblocks import contract_inherit
+from genblocks.interfaces import Space
 from genblocks.product import Product
 from genblocks.finite_set import FiniteSet
 from contracts import contract
-from sts.has_comps import sts_symbol, HasComponents
+from sts.has_comps import sts_symbol, HasComponents, sts_type
+from pyparsing import Literal
 
 
 bit = FiniteSet([0, 1])
@@ -12,17 +12,17 @@ def bits(n):
     return Product(bit, n)                
 
 sts_symbol('bit', FiniteSet([0, 1]))
-
-class ConstantMapping(Mapping): 
-    short = 'constant'
-    
-    def __init__(self, i, o, value):
-        Mapping.__init__(self, i=i, o=o)
-        self.value = value
-        
-    @contract_inherit
-    def __call__(self, v):  # @UnusedVariable
-        return self.value 
+# 
+# class ConstantMapping(Mapping): 
+#     short = 'constant'
+#     
+#     def __init__(self, i, o, value):
+#         Mapping.__init__(self, i=i, o=o)
+#         self.value = value
+#         
+#     @contract_inherit
+#     def __call__(self, v):  # @UnusedVariable
+#         return self.value 
     
 class Interval(HasComponents, Space): 
     short = 'interval'
@@ -43,5 +43,12 @@ class Interval(HasComponents, Space):
 
     def __str__(self):
         return '[%s,%s] ' % (self.lower, self.upper)
+
+    @staticmethod
+    def get_parsing_expr():
+        expr = Literal('[') + sts_type + "," + sts_type + Literal(']')    
+        expr.setName('Interval')
+        return True, expr
+    
 
 

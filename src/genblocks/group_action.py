@@ -1,8 +1,7 @@
 from genblocks.interfaces import EquivRelation, Space
 from contracts import contract
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod
 from sts.has_comps import HasComponents
-
 
 class GroupAction(HasComponents, EquivRelation):
     short = 'action'
@@ -16,6 +15,10 @@ class GroupAction(HasComponents, EquivRelation):
     def related(self, a, b):
         """ Yes if  a = g.b """
         raise NotImplemented
+
+    @staticmethod
+    def get_parsing_expr():
+        return None
 
 
 class GProduct(GroupAction):
@@ -32,6 +35,9 @@ class GProduct(GroupAction):
     def __str__(self):
         return '(%s)^%s' % (self.s, self.n)
 
+    @staticmethod
+    def get_parsing_expr():
+        return None
 
 class Automorphism(GroupAction):
     short = 'aut'

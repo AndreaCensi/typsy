@@ -1,10 +1,40 @@
 from sts.has_comps import HasComponents
 from sts.exceptions import FailedMatch
+from pyparsing import (delimitedList, Forward, Literal,  # @UnusedImport
+  stringEnd, nums, Word, CaselessLiteral, Combine,  # @UnusedImport
+  Optional, Suppress, OneOrMore, ZeroOrMore, opAssoc,  # @UnusedImport
+  operatorPrecedence, oneOf, ParseException, ParserElement,  # @UnusedImport
+  alphas, alphanums, ParseFatalException,  # @UnusedImport
+  ParseSyntaxException, FollowedBy, NotAny, Or,  # @UnusedImport
+  MatchFirst, Keyword, Group, White, lineno, col)  # @UnusedImport
+
+
+O = Optional
+S = Suppress
+number = Word(nums)
+point = Literal('.')
+e = CaselessLiteral('E')
+plusorminus = Literal('+') | Literal('-')
+integer = Combine(O(plusorminus) + number)
+floatnumber = Combine(integer + (point + O(number)) ^ (e + integer))
+integer.setName('integer')
+integer.setParseAction(lambda tokens: PGNative(int(tokens[0])))
+floatnumber.setName('integer')
+floatnumber.setParseAction(lambda tokens: PGNative(float(tokens[0])))
+
+
 
 class PGNative(HasComponents):
     short = 'native'
     
+    @staticmethod
+    def get_parsing_expr():
+        return True, integer  # | floatnumber
+        
     def __init__(self, value):
+        if isinstance(value, PGNative):
+            msg = 'Could not give %r as value of PGNative' % value
+            raise ValueError(msg)
         self.value = value
         
     def get_components(self):
@@ -36,8 +66,13 @@ class PGList(list, HasComponents):
         l = [c.replace_vars(variables) for c in self]
         return PGList(l)
 
-
+    @staticmethod
+    def get_parsing_expr():
+        return None
+    
 def as_gb(value):
+    if isinstance(value, HasComponents):
+        return value  
     if isinstance(value, list):
         return PGList(map(as_gb, value))
     else:

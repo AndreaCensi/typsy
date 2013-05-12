@@ -22,4 +22,7 @@ class OrbitSpace(Space, HasComponents):
     def __str__(self):
         return '(%s)/(%s)' % (self.space, self.group)
 
-     
+    @staticmethod
+    def get_parsing_expr():
+        return None
+
