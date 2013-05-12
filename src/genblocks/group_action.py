@@ -1,15 +1,15 @@
 from genblocks.interfaces import EquivRelation, Space
 from contracts import contract
 from abc import ABCMeta, abstractmethod
+from sts.has_comps import HasComponents
 
 
-class GroupAction(EquivRelation):
-    
-    __metaclass__ = ABCMeta
+class GroupAction(HasComponents, EquivRelation):
+    short = 'action'
     
     @contract(S=Space)
     def __init__(self, S):
-        self._space = S
+        self.S = S
         
     @abstractmethod
     @contract(returns='bool')
@@ -19,6 +19,8 @@ class GroupAction(EquivRelation):
 
 
 class GProduct(GroupAction):
+    short = 'gprod'
+    
     def __init__(self, s, n):
         self.s = s
         self.n = n
@@ -32,6 +34,8 @@ class GProduct(GroupAction):
 
 
 class Automorphism(GroupAction):
+    short = 'aut'
+    
     @contract(s=Space)
     def __init__(self, s):
         self.s = s

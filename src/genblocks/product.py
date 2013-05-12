@@ -1,9 +1,13 @@
-from genblocks.interfaces import Space, HasComponents, FailedMatch
+
+from sts import HasComponents
 from genblocks import contract_inherit
 from contracts import contract
+from genblocks.interfaces import Space
 
 
 class Product(Space, HasComponents):
+    short = 'prod'
+    
     def __init__(self, s, n):
         self.s = s
         self.n = n
@@ -26,6 +30,7 @@ class Product(Space, HasComponents):
 
 
 class ProductSpace(Space, HasComponents):
+    short = 'product'
     
     @contract(spaces='seq[>=1](space)')
     def __init__(self, spaces):
@@ -58,23 +63,3 @@ class ProductSpace(Space, HasComponents):
 
         return "x".join('(%s)' % s for s in self.spaces) 
 
-    def get_components(self):
-        return ['spaces']
-    
-    def match(self, variables, other):
-        self.debug('match (vars: %s, other=%s)' % (variables, other))  
-        if not isinstance(other, ProductSpace):
-            raise FailedMatch(self, other)
-            
-        if len(other.spaces) != len(self.spaces):
-            raise FailedMatch(self, other)
-        
-        for s1, s2 in zip(self.spaces, other.spaces):
-            HasComponents.debug_level += 1
-            s1.match(variables, s2)
-            HasComponents.debug_level -= 1
-  
-    def replace_vars(self, variables):
-        spaces = [s.replace_vars(variables) for s in self.spaces]
-        return ProductSpace(spaces)
-        

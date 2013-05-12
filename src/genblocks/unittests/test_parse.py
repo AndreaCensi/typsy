@@ -1,5 +1,5 @@
 import unittest
-from genblocks.parsing.parsin import GBParser, parse_yaml_spec
+from sts import parse_yaml_spec
 
 class TestParse(unittest.TestCase):
     def test1(self):

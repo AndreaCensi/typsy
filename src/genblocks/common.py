@@ -3,6 +3,7 @@ from genblocks import contract_inherit
 from genblocks.product import Product
 from genblocks.finite_set import FiniteSet
 from contracts import contract
+from sts.has_comps import sts_symbol, HasComponents
 
 
 bit = FiniteSet([0, 1])
@@ -10,7 +11,11 @@ bit = FiniteSet([0, 1])
 def bits(n):
     return Product(bit, n)                
 
+sts_symbol('bit', FiniteSet([0, 1]))
+
 class ConstantMapping(Mapping): 
+    short = 'constant'
+    
     def __init__(self, i, o, value):
         Mapping.__init__(self, i=i, o=o)
         self.value = value
@@ -19,10 +24,10 @@ class ConstantMapping(Mapping):
     def __call__(self, v):  # @UnusedVariable
         return self.value 
     
-
-class Interval(Space): 
+class Interval(HasComponents, Space): 
+    short = 'interval'
     
-    @contract(bounds='seq[2](number)')
+    @contract(bounds='seq[2]')
     def __init__(self, bounds):
         self.lower = bounds[0]
         self.upper = bounds[1]

@@ -1,14 +1,17 @@
-from genblocks.interfaces import Space, HasComponents, FailedMatch
 from contracts import contract
+from genblocks.interfaces import Space 
 
+from sts import HasComponents, as_gb
+    
 class FiniteSet(Space, HasComponents):
+    short = 'set'
     
     @contract(values='list')
     def __init__(self, values):
-        self._values = values
+        self.values = as_gb(values)
         
     def belongs(self, a):
-        return a in self._values
+        return a in self.values
 
     def equals(self, a, b):
         return a == b
@@ -20,16 +23,10 @@ class FiniteSet(Space, HasComponents):
         pass
 
     def __str__(self):
-        elems = ",".join('%s' % x for x in self._values)
+        elems = ",".join('%s' % x for x in self.values)
         return '{' + elems + '}'
  
-    def get_components(self):
-        return []     
-          
-    def match(self, variables, other):  
-        if not isinstance(other, FiniteSet):
-            raise FailedMatch(self, other)
-        if not self.get_values() == other.get_values():
-            raise FailedMatch(self, other)
+    def __repr__(self):
+        return 'FiniteSet(%r)' % self.values
     
     

@@ -1,8 +1,11 @@
 from contracts import contract
-from genblocks.interfaces import Space, HasComponents
+from genblocks.interfaces import Space
+
+from sts import HasComponents
 
 
 class StochasticProcess(Space, HasComponents):
+    short = 'sp'
     
     @contract(o=Space)
     def __init__(self, o, t):
@@ -21,7 +24,3 @@ class StochasticProcess(Space, HasComponents):
     def __str__(self):
         return 'SP(%s;%s)' % (self.o, self.t)
 
-    def get_components(self):
-        return ['o', 't']
-    
-        

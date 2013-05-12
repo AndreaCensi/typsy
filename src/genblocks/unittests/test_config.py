@@ -1,5 +1,5 @@
 import unittest
-from genblocks.parsing.parsin import parse_yaml_spec
+from sts import parse_yaml_spec
 from contracts import contract
 
 class Component:
@@ -16,13 +16,14 @@ comp_spec = ("""
 map:
   # from a valid configuration
   i:
-    configuration:
+    config:
      parameters:
-     - name: values
-       contract: none|int,>=1
-     - name: values
-       valid: True
-       contract: none|int,>=1
+     - param:
+         name: values
+         contract: none|int,>=1
+     - param:
+         name: values
+         contract: none|int,>=1
   o:
    # and creates a method that 
    map:
@@ -30,8 +31,8 @@ map:
     i:  
      bb:
       i: 
-        product:
-         space: $S
+        prod:
+         s: $S
          n: $N
       o: $Y
       t: $t
@@ -39,30 +40,16 @@ map:
     o: 
      bb:  
       i: 
+        prod:
+         s: $S
+         n: $N
       o: 
+        prod:
+         s: $S
+         n: $N
+      t: $t
 """)
-
-spec_i = ("""
-product:
- spaces:
- - bb: # agent
-    i: bit
-    o: bit
-    t: 1
- - bb: 
-    i: bit
-    o: bit
-    t: 1
-""")
-
-spec_o_expected = ("""
- sp: 
-    o:  
-      product:
-       spaces:
-       - bit
-       - bit
-""")
+ 
 
 class TestConfig(unittest.TestCase):
     def test1(self):

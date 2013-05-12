@@ -1,5 +1,5 @@
 import unittest
-from genblocks.parsing.parsin import parse_yaml_spec
+from sts import parse_yaml_spec
 
 # (P((BB(U;Y;t))x(BB(Y;U;t))))->(SP(P((Y)x(U))))
 # BB(U;Y;t) x BB(Y;U;t)-> SP(P(YxU))
@@ -65,6 +65,7 @@ class TestLoop(unittest.TestCase):
         res = loop_spec.match_components(variables, dict(i=spec_i))
         spec_o = res['o']
         
+        print spec_o
         print 'variables', variables
         
         self.assertEqual(spec_o_expected, spec_o) 

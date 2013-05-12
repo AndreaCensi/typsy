@@ -1,27 +1,24 @@
 from contracts import contract
-from genblocks.interfaces import Mapping
-from genblocks.product import Product, ProductSpace
 import yaml
 from pprint import pformat
-from genblocks.bb import BlackBox
-from genblocks.orbit_space import OrbitSpace
-from genblocks.common import bit, Interval
-from genblocks.group_action import GProduct, Automorphism
-from genblocks.stochastic_process import StochasticProcess
-from genblocks.variable import Variable
+from sts.has_comps import HasComponents
+from sts.natives import PGNative, PGList
+from sts.variable import Variable
 
-names = {
-    'map': Mapping,
-    'prod': Product,
-    'gprod': GProduct,
-    'bb': BlackBox,
-    'os': OrbitSpace,
-    'bit': bit,
-    'interval': Interval,
-    'aut': Automorphism,
-    'product': ProductSpace,
-    'sp': StochasticProcess
-}
+# names = {
+#     'map': Mapping,
+#     'prod': Product,
+#     'gprod': GProduct,
+#     'bb': BlackBox,
+#     'os': OrbitSpace,
+#     'bit': bit,
+#     'interval': Interval,
+#     'aut': Automorphism,
+#     'product': ProductSpace,
+#     'sp': StochasticProcess,
+#     Configuration.short: Configuration,
+#     Parameter.short: Parameter
+# }
 
 def parse_yaml_spec(s):
     p = GBParser()
@@ -37,16 +34,17 @@ class GBParser():
         try: 
             return klass(**kwargs)
         except TypeError as e:
-            msg = 'Cannot call %s %s' % (klass, kwargs)
+            msg = 'Cannot call %r %r' % (klass, 'kwargs')
             msg += '\n%s' % e
             raise Exception(msg)
         
     def parse_pair(self, k, v):
-        if k in names:
+        klasses = HasComponents.klasses 
+        if k in klasses:
             if not isinstance(v, dict):
                 msg = 'Expected %r dict' % v
                 raise ValueError(msg)
-            klass = names[k]
+            klass = klasses[k]
             vals = dict([(m, self.parse_value(x)) for m, x in v.items()]) 
             return self.instance(klass, **vals)
 
@@ -61,9 +59,12 @@ class GBParser():
     
     def parse_value(self, x):
         if isinstance(x, (int, float)):
-            return x
+            return PGNative(x)
         if isinstance(x, list):
-            return map(self.parse_value, x)
+            m = map(self.parse_value, x)
+            l = PGList()
+            l.extend(m)
+            return l
         return self.parse_root(x)
         
     @contract(x='str|dict[1]')
@@ -72,12 +73,13 @@ class GBParser():
             if x[0] == '$':
                 return Variable(x[1:])
             else:
-                if x in names:
-                    return names[x]
+                if x in HasComponents.names:
+                    return HasComponents.names[x]
                 else:
-                    msg = 'Could not interpret %r' % x
-                    raise Exception(msg)
-        
+                    return x
+                    # msg = 'Could not interpret %r' % x
+                    # raise Exception(msg)
+    
         assert len(x) == 1
         k = list(x.keys())[0]
         v = list(x.values())[0]

@@ -1,7 +1,10 @@
-from genblocks.interfaces import HasComponents, FailedMatch
+from sts import HasComponents
+from sts.exceptions import FailedMatch
 
 
 class Variable(HasComponents):
+    short = 'variable'
+    
     def __init__(self, name):
         self.name = name
         
