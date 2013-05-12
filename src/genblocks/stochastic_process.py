@@ -32,6 +32,7 @@ class StochasticProcess(Space, HasComponents):
             return StochasticProcess(o, t)
         
         expr.setParseAction(parse_action)
+        expr.setName('SP')
         return True, expr
 
 

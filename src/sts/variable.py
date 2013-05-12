@@ -14,12 +14,12 @@ class Variable(HasComponents):
         return []
     
     def match(self, variables, other):
-        self.debug('match (vars: %s)' % variables)
+        # self.debug('match (vars: %s)' % variables)
         if self.name in variables:
             v = variables[self.name]
-            self.debug('variable already found = %s' % v)
+            # self.debug('variable already found = %s' % v)
             if v == self:
-                self.debug('variable is me!')
+                # self.debug('variable is me!')
                 return  # XXX 
                 # raise ValueError()
             if isinstance(v, HasComponents):
@@ -30,15 +30,18 @@ class Variable(HasComponents):
                 if v != other:
                     raise FailedMatch(v, other) 
         else:
-            self.debug('Setting variable to %s' % other)
+            # self.debug('Setting variable to %s' % other)
             variables[self.name] = other
 
     def replace_vars(self, variables):
-        self.debug('replace_vars')
+        # self.debug('replace_vars')
         return variables[self.name]
  
     def __str__(self):
-        return '$' + self.name
+        if len(self.name) == 1:
+            return self.name
+        else:
+            return '$' + self.name
     
     def __repr__(self):
         return 'Variable(%r)' % self.name
@@ -49,6 +52,7 @@ class Variable(HasComponents):
         O = Optional
         identifier_expression = Combine(oneOf(list(alphas)) + O(Word('_' + alphanums)))
         expr = S(Literal('$')) - identifier_expression
+        expr = expr ^ oneOf(list(alphas))
         expr.setName('variable')
         
         def my_parse_action(s, loc, tokens):  # @UnusedVariable

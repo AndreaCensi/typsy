@@ -1,6 +1,6 @@
+# -*- coding: utf8 -*-
 from sts.has_comps import sts_type, HasComponents, simple_sts_type
 from pyparsing import Literal, Suppress
-from contracts import contract
 
 
 class Mapping(HasComponents): 
@@ -12,10 +12,12 @@ class Mapping(HasComponents):
         self.i = i
         self.o = o
 
-    @contract(v='in_input', returns='in_output')
-    def __call__(self, v):
-        pass
-    
+    def __call__(self, i):
+        variables = {}
+        res = self.match_components(variables, dict(i=i))
+        spec_o = res['o']
+        return spec_o
+        
     def to_struct(self):
         return {'i': self.i, 'o': self.o}
     
@@ -23,13 +25,27 @@ class Mapping(HasComponents):
         return 'Mapping(%r, %r)' % (self.i, self.o)
     
     def __str__(self):
-        return "(%s)->(%s)" % (self.i, self.o)
+        i = '%s' % self.i
+        o = '%s' % self.o
+        
+        if self.i.get_precedence() <= self.get_precedence():
+            i = '(%s)' % i
+        if self.o.get_precedence() <= self.get_precedence():
+            o = '(%s)' % o
+            
+        return "%s→%s" % (i, o)
 
+    def get_precedence(self):
+        return -2
+    
     @staticmethod
     def get_parsing_expr():
         S = Suppress
-        inside = (S('(') - sts_type - S(')')) | simple_sts_type
-        expr = (inside + S(Literal('->')) - inside)
+        inside = simple_sts_type | (S('(') - sts_type - S(')'))
+        
+        arrow = S(Literal('->') | Literal('→'))
+        
+        expr = (inside + arrow - inside)
         
         def my_parse_action(s, loc, tokens):  # @UnusedVariable
             i = tokens[0]
@@ -37,7 +53,7 @@ class Mapping(HasComponents):
             return Mapping(i, o)
                 
         expr.addParseAction(my_parse_action)
-        
+        expr.setName('mapping')
         return False, expr
     
     @staticmethod

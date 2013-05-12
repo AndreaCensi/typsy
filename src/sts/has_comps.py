@@ -1,7 +1,7 @@
 from contracts import contract
 from contracts.main import get_all_arg_names
+from pyparsing import Forward, ParserElement, Or
 from sts.exceptions import FailedMatch, NotMatch
-from pyparsing import Forward, MatchFirst, ParserElement
 
 ParserElement.enablePackrat()
 
@@ -26,14 +26,20 @@ def get_sts_type():
                     msg = 'Could not %r' % cls
                     raise Exception(msg)
                 simple, expr = pexpr
+                try:
+                    str(expr)
+                except:
+                    msg = 'invalid name for %r' % cls
+                    raise ValueError(msg)
                 if simple:
                     simple_exprs.append(expr)
                 else:
                     complex_exprs.append(expr)
         # print('creating from')
-        # print simple_exprs
-        simple_sts_type << MatchFirst(simple_exprs)
-        sts_type << (simple_sts_type | MatchFirst(complex_exprs))
+        # print 'simple', simple_exprs
+        # print 'complex', complex_exprs
+        simple_sts_type << Or(simple_exprs)
+        sts_type << (simple_sts_type ^ Or(complex_exprs))
         sts_type_final = sts_type
         sts_type_final.setName('sts_type_final')
         # print sts_type
@@ -69,12 +75,12 @@ class HasComponents():
         cv = dict([(k, self.__dict__[k]) for k in self.get_components()])
         for k, v in cv.items():
             if not isinstance(v, HasComponents):
-                self.debug('%r is not a HasComponents' % k)
+                # self.debug('%r is not a HasComponents' % k)
+                pass
         return cv
     
-    
     def match(self, variables, other):
-        self.debug('match generic (vars: %s, other=%s)' % (variables, other))
+        # self.debug('match generic (vars: %s, other=%s)' % (variables, other))
         if not type(self) == type(other):
             raise FailedMatch(self, other)
         comps = self.get_components()
@@ -92,9 +98,9 @@ class HasComponents():
             except AttributeError:
                 e = a == b 
             if not e:
-                self.debug('component %r does not match' % k)
-                self.debug('a: %r' % a)
-                self.debug('b: %r' % b)
+                # self.debug('component %r does not match' % k)
+                # self.debug('a: %r' % a)
+                # self.debug('b: %r' % b)
                 return False
         return True
         
@@ -103,7 +109,7 @@ class HasComponents():
         """
             pattern matching
         """
-        self.debug('match_components (vars: %s, spec=%s)' % (variables, spec))
+        # self.debug('match_components (vars: %s, spec=%s)' % (variables, spec))
         my_comps = self.get_components_values()
         
         toformat = []
@@ -134,7 +140,7 @@ class HasComponents():
         return res
     
     def replace_vars(self, variables):
-        self.debug('replace_vars')
+        # self.debug('replace_vars')
         klass = type(self)
         comps = self.get_components()
         kwargs = {} 
@@ -163,7 +169,15 @@ class HasComponents():
      
     @staticmethod
     def get_parsing_expr():
+        # Returns tuple Precedence, expression
         raise NotImplementedError()
+    
+    def get_precedence(self):
+        simple, _ = type(self).get_parsing_expr()
+        if simple: 
+            return 1
+        else:
+            return 0
     
 def sts_symbol(n, s):
     HasComponents.names[n] = s 

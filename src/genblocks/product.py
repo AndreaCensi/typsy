@@ -1,3 +1,4 @@
+# -*- coding: utf8 -*-
 
 from sts import HasComponents
 from genblocks import contract_inherit
@@ -5,6 +6,7 @@ from contracts import contract
 from genblocks.interfaces import Space
 from pyparsing import Literal, Suppress, ZeroOrMore
 from sts.has_comps import sts_type, simple_sts_type
+from sts.natives import PGList
 
 
 class Product(Space, HasComponents):
@@ -61,7 +63,7 @@ class ProductSpace(Space, HasComponents):
     
     @contract(spaces='seq[>=1](space)')
     def __init__(self, spaces):
-        self.spaces = spaces
+        self.spaces = PGList(spaces)
           
     @contract_inherit
     def belongs(self, a):
@@ -81,20 +83,28 @@ class ProductSpace(Space, HasComponents):
     @staticmethod
     def get_parsing_expr():
         S = Suppress
-        inside = (S('(') - sts_type - S(')')) | simple_sts_type
+        inside = simple_sts_type ^ (S('(') - sts_type - S(')'))  
 
-        expr = inside + S('x') - inside + ZeroOrMore(S('x') - inside) 
+        times = S(Literal('x') | Literal('×'))
+        expr = inside + times - inside + ZeroOrMore(times - inside) 
         
         def parse_action(s, loc, tokens):  # @UnusedVariable
             values = list(tokens)
             return ProductSpace(values)
-
             
         expr.setParseAction(parse_action)
         expr.setName('product')
         
         return False, expr
         
+    @staticmethod
+    def get_parsing_examples():
+        return """
+        $A x $B
+        ($A x $B) -> $C
+
+        """
+
     def __str__(self):
 #                 def convert(x):
 #             if isinstance(x, Binary) and x.precedence < self.precedence:

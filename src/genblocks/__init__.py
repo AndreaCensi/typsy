@@ -30,4 +30,4 @@ from .stochastic_process import *
 from .configurations import *
 from .finite_set import *
 from .mapping import *
-print get_sts_type()
+# print get_sts_type()
