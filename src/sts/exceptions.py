@@ -6,10 +6,13 @@ class NotMatch(Exception):
         Exception.__init__(self, msg)
         
 class FailedMatch(NotMatch):
-    def __init__(self, me, other):
+    def __init__(self, me, other, msg=''):
         self.me = me
         self.other = other
-        msg = 'Could not match:'
-        msg += '\n spec %s' % me  
-        msg += '\n with %s' % other
+        m = 'Could not match:'
+        m += '\n spec %s' % me  
+        m += '\n with %s' % other
+        m += '\n' + msg
+        NotMatch.__init__(self, msg)
+        
      

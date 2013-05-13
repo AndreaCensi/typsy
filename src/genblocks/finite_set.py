@@ -35,7 +35,8 @@ class FiniteSet(Space, HasComponents):
     def get_parsing_expr():
         S = Suppress    
         inside = (S('(') - sts_type - S(')')) | sts_type
-        elements = S(Literal('{')) + inside + ZeroOrMore(S(',') + inside) + S(Literal('}'))
+        elements = S(Literal('{')) + inside + ZeroOrMore(S(',') + inside) \
+                     + S(Literal('}'))
         elements = Group(elements)('elements')
         expr = elements
         expr.setName('Finite set')

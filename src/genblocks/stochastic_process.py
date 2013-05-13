@@ -1,4 +1,3 @@
-from contracts import contract
 from genblocks.interfaces import Space
 
 from sts import HasComponents
@@ -9,7 +8,7 @@ from sts.has_comps import sts_type
 class StochasticProcess(Space, HasComponents):
     short = 'sp'
     
-    @contract(o=Space)
+    # @contract(o=Space)
     def __init__(self, o, t):
         self.o = o
         self.t = t

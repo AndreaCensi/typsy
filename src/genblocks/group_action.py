@@ -1,7 +1,8 @@
 from genblocks.interfaces import EquivRelation, Space
 from contracts import contract
 from abc import abstractmethod
-from sts.has_comps import HasComponents
+from sts.has_comps import HasComponents, sts_symbol, simple_sts_type, sts_type
+from pyparsing import Suppress, Literal
 
 class GroupAction(HasComponents, EquivRelation):
     short = 'action'
@@ -40,7 +41,10 @@ class GProduct(GroupAction):
         return None
 
 class Automorphism(GroupAction):
-    short = 'aut'
+    """
+        Aut(S): all automorphisms of S
+    """
+    short = 'Aut'
     
     @contract(s=Space)
     def __init__(self, s):
@@ -51,4 +55,20 @@ class Automorphism(GroupAction):
 
     def related(self, a, b):
         return True
+
+    @staticmethod
+    def get_parsing_expr():
+        L = Literal
+        S = Suppress
+
+        expr = S(L('Aut')) - S(L('(')) - sts_type - S(L(')'))
+        
+        expr.setName('Aut')
+        
+        def my_parse_action(s, loc, tokens):  # @UnusedVariable
+            s = tokens[0]
+            return Automorphism(s=s)
+                
+        expr.addParseAction(my_parse_action)
+        return False, expr
     

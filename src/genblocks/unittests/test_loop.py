@@ -1,3 +1,8 @@
+'''
+        Created on May 13, 2013
+        
+        @author: andrea
+        '''
 import unittest
 from sts import parse_yaml_spec
 

@@ -2,6 +2,7 @@ from pyparsing import (alphanums, alphas, Word, oneOf, Combine, Literal, Suppres
     Optional)
 from sts import HasComponents
 from sts.exceptions import FailedMatch
+from sts.intersections import Intersection
 
 
 class Variable(HasComponents):
@@ -10,33 +11,46 @@ class Variable(HasComponents):
     def __init__(self, name):
         self.name = name
         
+    def __eq__(self, other):
+        if not isinstance(other, Variable):
+            return False
+        return self.name == other.name
+        
     def get_components(self):
         return []
     
     def match(self, variables, other):
-        # self.debug('match (vars: %s)' % variables)
+        self.debug('match variable %r with %r (vars: %s)' 
+                   % (self, other, variables))
         if self.name in variables:
             v = variables[self.name]
-            # self.debug('variable already found = %s' % v)
-            if v == self:
-                # self.debug('variable is me!')
-                return  # XXX 
-                # raise ValueError()
-            if isinstance(v, HasComponents):
-                HasComponents.debug_level += 1
-                v.match(variables, other)
-                HasComponents.debug_level -= 1
-            else:
-                if v != other:
-                    raise FailedMatch(v, other) 
+            
+            variables[self.name] = Intersection([v, other])
+#             
+#             self.debug('variable already found = %s' % v)
+#             if v == self: 
+#                 raise ValueError()
+#             if isinstance(v, HasComponents):
+#                 HasComponents.debug_level += 1
+#                 v.match(variables, other)
+#                 HasComponents.debug_level -= 1
+#             else:
+#                 if v != other:
+#                     raise FailedMatch(v, other) 
         else:
-            # self.debug('Setting variable to %s' % other)
+            self.debug('Setting constraint %s satisfies  %s' % (self.name, other))
             variables[self.name] = other
 
     def replace_vars(self, variables):
         # self.debug('replace_vars')
-        return variables[self.name]
+        if self.name in variables:
+            return variables[self.name]
+        else:
+            return self
  
+    def get_variables(self):
+        return {self.name: self}
+     
     def __str__(self):
         if len(self.name) == 1:
             return self.name

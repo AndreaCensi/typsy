@@ -1,15 +1,14 @@
-from genblocks.interfaces import Space
+from genblocks.interfaces import Space, Numeric
 
 from sts import HasComponents
 from sts.has_comps import sts_type
 from pyparsing import Literal, Suppress
-from contracts import contract
-
+ 
 
 class BlackBox(Space, HasComponents):
     short = 'bb'
     
-    @contract(i=Space, o=Space)
+    # @contract(i=Space, o=Space)
     def __init__(self, o, i, t):
         self.i = i
         self.o = o
@@ -26,6 +25,12 @@ class BlackBox(Space, HasComponents):
 
     def __repr__(self):
         return 'BlackBox(%r,%r,%r)' % (self.o, self.i, self.t)
+    
+    def match_components(self, variables, spec):
+        HasComponents.match_components(self, variables, spec)
+        self.i.match(variables, Space())
+        self.o.match(variables, Space())
+        self.t.match(variables, Numeric())
     
     @staticmethod
     def get_parsing_expr():
@@ -45,7 +50,6 @@ class BlackBox(Space, HasComponents):
         
         expr.setParseAction(parse_action)
         return True, expr
-
 
     @staticmethod
     def get_parsing_examples():

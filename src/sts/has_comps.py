@@ -35,15 +35,10 @@ def get_sts_type():
                     simple_exprs.append(expr)
                 else:
                     complex_exprs.append(expr)
-        # print('creating from')
-        # print 'simple', simple_exprs
-        # print 'complex', complex_exprs
         simple_sts_type << Or(simple_exprs)
         sts_type << (simple_sts_type ^ Or(complex_exprs))
         sts_type_final = sts_type
         sts_type_final.setName('sts_type_final')
-        # print sts_type
-        # print('/created')
         return sts_type_final
     
 class HasMeta(type):
@@ -59,8 +54,13 @@ class HasMeta(type):
             
 
 class HasComponents():
-
-    """ Has components """
+    """ 
+        
+        t1 = 'SP(A;1)'
+        t2 = 'SP({0,1};1)'
+        m = t1.match(t2) # {A=>{0,1}}
+    
+    """
     
     __metaclass__ = HasMeta
     
@@ -81,11 +81,31 @@ class HasComponents():
     
     def match(self, variables, other):
         # self.debug('match generic (vars: %s, other=%s)' % (variables, other))
-        if not type(self) == type(other):
-            raise FailedMatch(self, other)
-        comps = self.get_components()
-        spec = dict([k, other.__dict__[k]] for k in comps)
-        self.match_components(variables, spec)
+        from sts.variable import Variable
+        if isinstance(other, Variable):
+            variables[other.name] = self
+            return True
+        
+        same = self.__class__ == other.__class__
+        sub = issubclass(self.__class__, other.__class__)
+        if not sub:
+            msg = 'Could not match:\n'
+            msg += '- self  %r\n' % self
+            msg += '- other %r\n' % other
+            msg += 'because classes dont match:\n'
+            msg += '- self.class =  %s\n' % self.__class__ 
+            msg += '- other.class =  %s\n' % other.__class__
+            raise FailedMatch(self, other, msg)
+        
+        if same:
+            comps = self.get_components()
+            spec = dict([k, other.__dict__[k]] for k in comps)
+            self.match_components(variables, spec)
+    
+    def match_expr(self, other):
+        variables = {}
+        self.match(variables, other)
+        return reduce_vars(variables)
         
     def __eq__(self, other):
         if not type(self) == type(other):
@@ -160,6 +180,12 @@ class HasComponents():
     def get_parsing_examples():
         return ""
 
+    def get_variables(self):
+        variables = {}
+        for v in self.get_components_values().values():
+            variables.update(v.get_variables())
+        return variables
+    
     def debug(self, s):
         print(' ' * (1 + HasComponents.debug_level) + '-' + (' %60s ' % self) + (s))
             
@@ -178,6 +204,32 @@ class HasComponents():
             return 1
         else:
             return 0
+    
+    def format_sub(self, x):
+        """ returns either (x) or x whether one is needed """
+        s = '%s' % x
+        if x.get_precedence() <= self.get_precedence():
+                s = '(%s)' % s
+        return s
+    
+@contract(vs=dict, returns=dict)
+def reduce_vars(vs):
+    """
+        {'A': Variable('C'), 'C': FiniteSet([PGNative(0), PGNative(2)])}
+     => {'A': Variable('C'), 'C': FiniteSet([PGNative(0), PGNative(2)])}
+    """
+    vs = vs.copy()
+    for k, v in vs.items():
+        vs[k] = v.replace_vars(vs)
+    return vs
+        
+@contract(variables='dict')
+def format_variables(variables):
+    """ Formats on multiline """
+    msg = ''
+    for k, v in variables.items():
+        msg += '\n- %5s: %s' % (k, v)
+    return msg
     
 def sts_symbol(n, s):
     HasComponents.names[n] = s 

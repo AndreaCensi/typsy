@@ -1,6 +1,7 @@
 # -*- coding: utf8 -*-
 from sts.has_comps import sts_type, HasComponents, simple_sts_type
 from pyparsing import Literal, Suppress
+from sts import STSGlobals
 
 
 class Mapping(HasComponents): 
@@ -32,8 +33,11 @@ class Mapping(HasComponents):
             i = '(%s)' % i
         if self.o.get_precedence() <= self.get_precedence():
             o = '(%s)' % o
-            
-        return "%s→%s" % (i, o)
+        
+        if STSGlobals.use_unicode:
+            return "%s ⟶ %s" % (i, o)
+        else:
+            return "%s -> %s" % (i, o)
 
     def get_precedence(self):
         return -2
@@ -43,7 +47,7 @@ class Mapping(HasComponents):
         S = Suppress
         inside = simple_sts_type | (S('(') - sts_type - S(')'))
         
-        arrow = S(Literal('->') | Literal('→'))
+        arrow = S(Literal('->') | Literal('→') | Literal('⟶'))
         
         expr = (inside + arrow - inside)
         

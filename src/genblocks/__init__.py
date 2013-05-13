@@ -22,12 +22,12 @@ def in_space(x):
 
 
 from .bb import *
-# from .orbit_space import *
+from .orbit_space import *
 from .product import *
-# from .group_action import *
+from .group_action import *
 # from .common import *
 from .stochastic_process import *
-from .configurations import *
+# from .configurations import *
 from .finite_set import *
 from .mapping import *
 # print get_sts_type()

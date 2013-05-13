@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 
-from sts import HasComponents
+from sts import HasComponents, STSGlobals
 from genblocks import contract_inherit
 from contracts import contract
 from genblocks.interfaces import Space
@@ -12,7 +12,7 @@ from sts.natives import PGList
 class Product(Space, HasComponents):
     short = 'prod'
     
-    @contract(s=Space, n=HasComponents)
+    # @contract(s=Space, n=HasComponents)
     def __init__(self, s, n):
         self.s = s
         self.n = n
@@ -106,14 +106,11 @@ class ProductSpace(Space, HasComponents):
         """
 
     def __str__(self):
-#                 def convert(x):
-#             if isinstance(x, Binary) and x.precedence < self.precedence:
-#                 return '(%s)' % x
-#             else:
-#                 return '%s' % x
 
-#         s = self.glyph.join(convert(x) for x in self.exprs)
-#         return s
+        if STSGlobals.use_unicode:
+            glyph = ' × '
+        else:
+            glyph = ' x '
 
-        return "x".join('(%s)' % s for s in self.spaces) 
+        return glyph.join(map(self.format_sub, self.spaces)) 
 
