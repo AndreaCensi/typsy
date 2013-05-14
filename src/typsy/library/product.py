@@ -1,21 +1,23 @@
 # -*- coding: utf8 -*-
-
-from typsy import HasComponents, TypsyGlobals
 from genblocks import contract_inherit
-from contracts import contract
 from genblocks.interfaces import Space
-from pyparsing import Literal, Suppress, ZeroOrMore
-from typsy.has_comps import sts_type, simple_sts_type, ParseableWithOperators
 
 from typsy.special import PGList
+from typsy.parseables import ParseableWithOperators
 
 
-
-class ProductSpace(Space, ParseableWithOperators):
+class ProductSpace(ParseableWithOperators, Space):
     short = 'product'
     
-    @contract(spaces='seq[>=1](space)')
-    def __init__(self, spaces):
+    @staticmethod
+    def get_arity():
+        return ParseableWithOperators.TWO_OR_MORE
+
+    @staticmethod
+    def get_glyphs():
+        return ["x", "×"]
+    
+    def __init__(self, *spaces):
         self.spaces = PGList(spaces)
           
     @contract_inherit
@@ -32,23 +34,6 @@ class ProductSpace(Space, ParseableWithOperators):
 
     def __repr__(self):
         return 'ProductSpace(%r)' % self.spaces
-     
-    @staticmethod
-    def get_parsing_expr():
-        S = Suppress
-        inside = simple_sts_type ^ (S('(') - sts_type - S(')'))  
-
-        times = S(Literal('x') | Literal('×'))
-        expr = inside + times - inside + ZeroOrMore(times - inside) 
-        
-        def parse_action(s, loc, tokens):  # @UnusedVariable
-            values = list(tokens)
-            return ProductSpace(values)
-            
-        expr.setParseAction(parse_action)
-        expr.setName('product')
-        
-        return False, expr
         
     @staticmethod
     def get_parsing_examples():
@@ -56,13 +41,4 @@ class ProductSpace(Space, ParseableWithOperators):
         $A x $B
         ($A x $B) -> $C
 
-        """
-
-    def __str__(self):
-        if TypsyGlobals.use_unicode:
-            glyph = ' × '
-        else:
-            glyph = ' x '
-
-        return glyph.join(map(self.format_sub, self.spaces)) 
-
+        """ 

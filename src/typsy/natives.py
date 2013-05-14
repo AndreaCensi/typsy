@@ -1,4 +1,4 @@
-from typsy.has_comps import HasComponents
+
 from typsy.exceptions import FailedMatch
 from pyparsing import (delimitedList, Forward, Literal,  # @UnusedImport
   stringEnd, nums, Word, CaselessLiteral, Combine,  # @UnusedImport
@@ -7,6 +7,7 @@ from pyparsing import (delimitedList, Forward, Literal,  # @UnusedImport
   alphas, alphanums, ParseFatalException,  # @UnusedImport
   ParseSyntaxException, FollowedBy, NotAny, Or,  # @UnusedImport
   MatchFirst, Keyword, Group, White, lineno, col)  # @UnusedImport
+from typsy.parseables import Parseable
 
 
 O = Optional
@@ -25,7 +26,7 @@ floatnumber.setParseAction(lambda tokens: PGNative(float(tokens[0])))
 
 __all__ = ['PGNative']
 
-class PGNative(HasComponents):
+class PGNative(Parseable):
     short = 'native'
     
     def __init__(self, value):

@@ -1,11 +1,13 @@
 from contracts import contract
 from contracts.main import get_all_arg_names
-from pyparsing import Forward, ParserElement, Or, Literal, Suppress, MatchFirst
+from pyparsing import Forward, ParserElement, Or, opAssoc, Suppress, \
+    operatorPrecedence, Literal
 from .exceptions import FailedMatch, NotMatch
-from abc import abstractmethod
-from typsy import TypsyGlobals
+from typsy.pyparsing_add import MyOr, wrap_parse_action
+from contracts.pyparsing_utils import myOperatorPrecedence
 
 ParserElement.enablePackrat()
+# ParserElement.verbose_stacktrace = True
 
 sts_type = Forward()
 sts_type.setName('sts_type')
@@ -21,26 +23,59 @@ def get_sts_type():
     else:
         simple_exprs = []
         complex_exprs = []
-        for cls in HasComponents.klasses.values(): 
-            pexpr = cls.get_parsing_expr()
-            if pexpr is not None:
-                if not isinstance(pexpr, tuple):
-                    msg = 'Could not %r' % cls
-                    raise Exception(msg)
-                simple, expr = pexpr
-                try:
-                    str(expr)
-                except:
-                    msg = 'invalid name for %r' % cls
-                    raise ValueError(msg)
-                if simple:
-                    simple_exprs.append(expr)
-                else:
-                    complex_exprs.append(expr)
-        simple_sts_type << Or(simple_exprs)
-        sts_type << (simple_sts_type ^ Or(complex_exprs))
+        operators = []
+        
+        S = Suppress
+        L = Literal
+
+        for cls in HasComponents.klasses.values():
+            from typsy.parseables import Parseable
+            if not issubclass(cls, Parseable):
+                print('Warn, %r is not Parseable' % cls)
+                continue 
+
+            from typsy.parseables import ParseableWithOperators
+            if issubclass(cls, ParseableWithOperators) and cls.get_arity() in [2]:
+                glyphs = cls.get_glyphs()
+                glyph = MyOr(map(L, glyphs))
+                spec = (glyph, cls.get_arity(), opAssoc.LEFT,
+                        wrap_parse_action(cls.op_system_parse_action)) 
+                operators.append(spec)
+            else:
+                pexpr = cls.get_parsing_expr()
+                if pexpr is not None:
+                    if not isinstance(pexpr, tuple):
+                        msg = 'Could not %r' % cls
+                        raise Exception(msg)
+                    simple, expr = pexpr
+                    try:
+                        str(expr)
+                        # print cls, simple,str(expr) 
+                        pass
+                    except:
+                        msg = 'invalid name for %r' % cls
+                        raise ValueError(msg)
+                    
+                    if simple:
+                        simple_exprs.append(expr)
+                    else:
+                        complex_exprs.append(expr)
+                            
+        print('simple:    %r' % simple_exprs)
+        print('complex:   %r' % complex_exprs)
+        print('operators: %r' % operators)
+        
+
+        operand = (S('(') + sts_type + S(')')) | MyOr(complex_exprs + simple_exprs) 
+        ops = myOperatorPrecedence(operand, operators)
+
+        sts_type << ops
+        
+        simple_sts_type << MyOr(simple_exprs)
+        
         sts_type_final = sts_type
         sts_type_final.setName('sts_type_final')
+        
         return sts_type_final
     
 class HasMeta(type):
@@ -52,6 +87,7 @@ class HasMeta(type):
             return
 
         HasComponents.klasses[cls.__name__] = cls
+        
         if sts_type_final is not None:
             print('warning, adding %r but already created parsing' % cls)
             
@@ -73,6 +109,7 @@ class HasComponents():
         x = get_all_arg_names(type(self).__init__)
         x.remove('self')
         return x 
+    
 
     def get_components_and_values(self):
         """ Returns members of the structure """
@@ -196,165 +233,6 @@ class HasComponents():
     debug_level = 0
     klasses = {}
     names = {}
-    
-    
-class Parseable(HasComponents):
-    
-    PRECEDENCE_VARIABLE = 0
-    
-    @classmethod
-    def get_parsing_expr(klass):
-        msg = 'Need to implement get_parsing_expr() for %s' % klass
-        raise NotImplementedError(msg)
-
-    @classmethod
-    def get_parsing_examples(klass):
-        msg = 'Need to implement get_parsing_examples() for %s' % klass
-        raise NotImplementedError(msg)
-
-    @classmethod
-    def get_precedence(klass):
-        msg = 'Need to implement get_precedence() for %s' % klass
-        raise NotImplementedError(msg)
-
-
-    def format_sub(self, x):
-        """ returns either (x) or x whether one is needed """
-        s = '%s' % x
-        if not isinstance(x, Parseable):
-            msg = 'I expect a parseable object, got %r' % x
-            raise ValueError(msg)
-        if type(x).get_precedence() <= type(self).get_precedence():
-                s = '(%s)' % s
-        return s
-    
-    
-class ParseableWithOperators(Parseable):
-    precedence = {
-        '->': 2,
-    }
-    
-    TWO_OR_MORE = '2+'
-    
-    @classmethod
-    def get_arity(klass):
-        """ either 2 or "2+" """ 
-        msg = 'Need to implement get_arity() for %s' % klass
-        raise NotImplementedError(msg)
-
-    @classmethod
-    @contract(returns='list(str)')
-    def get_glyphs(klass):
-        """
-            First glyph must be in ParseableWithOperators.precedence
-        """ 
-        msg = 'Need to implement get_glyphs() for %s' % klass
-        raise NotImplementedError(msg)
-    
-    @classmethod
-    def get_glyph_for_output(klass):
-        glyphs = klass.get_glyphs()
-        # TODO: implement unicode switch
-        return glyphs[0]
-        
-    @classmethod
-    def get_precedence(klass):
-        glyph1 = klass.get_glyphs()[0]
-        return ParseableWithOperators.precedence[glyph1]
-
-    @classmethod
-    def get_parsing_expr(klass):
-        S = Suppress
-        L = Literal
-        inside = simple_sts_type | (S('(') - sts_type - S(')'))        
-        
-        glyphs = klass.get_glyphs()
-        glyph = S(MatchFirst(map(L, glyphs)))
-        
-        arity = klass.get_arity()
-        if arity == 2:
-            expr = (inside + glyph - inside)
-        else:
-            raise NotImplementedError()
-        
-        def my_parse_action(s, loc, tokens):  # @UnusedVariable
-            if arity == 2:
-                a = tokens[0]
-                b = tokens[1]
-                return klass(a, b)
-            else:
-                raise NotImplementedError()
-                
-        expr.addParseAction(my_parse_action)
-        expr.setName(str(klass))
-        return False, expr
-    
-    def __str__(self):
-        cv = self.get_components_and_values()
-        ss = []
-        for _, v in cv:
-            ss.append(self.format_sub(v))
-        glyph = type(self).get_glyph_for_output()
-        inter = " %s " % glyph
-        s = inter.join(ss)
-        return s
-    
-
-class ParseableAsString(Parseable):
-    
-    @classmethod
-    def get_precedence(klass):  # @UnusedVariable
-        return -1
-    
-    @classmethod
-    def get_identifier(klass):
-        msg = 'Need to implement get_glyphs() for %s' % klass
-        raise NotImplementedError(msg)
-    
-    @classmethod
-    def get_parsing_expr(klass):
-        identifier = klass.get_identifier()
-        
-        S = Suppress
-        L = Literal
-        expr = S(L(identifier))
-        expr.setName(identifier)
-        
-        def parse_action(s, loc, tokens):  # @UnusedVariable
-            return klass()
-        
-        expr.setParseAction(parse_action)
-        return True, expr
-   
-class ParseableWithExpression(Parseable):
-    """
-        This is an expression of the kind
-        
-            SP(A;B;...)
-            
-        where 
-            arity
-    """
-    
-    @staticmethod
-    def get_arity():
-        """ Number of elements inside """
-        
-    @staticmethod
-    def get_glyph():
-        """ """
-        raise NotImplementedError()
-
-    @staticmethod
-    def get_precedence():
-        return 0
-    
-    @abstractmethod
-    def __str__(self):
-        """ Returns a parseable string """
-        raise NotImplementedError()
-    
-    
     
     
 @contract(vs=dict, returns=dict)

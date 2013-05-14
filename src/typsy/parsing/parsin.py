@@ -13,6 +13,9 @@ def parse_spec(string, expr=None):
         assert isinstance(c, HasComponents), 'Want HasComponents, not %r' % c
         return c
     except (ParseException, ParseFatalException) as e:
+#         raise  # XXX
         where = Where(string, line=e.lineno, column=e.col)
         msg = '%s' % e
+        msg += '\nelement: %r' % e.parserElement 
         raise ContractSyntaxError(msg, where=where)
+        

@@ -1,18 +1,20 @@
 # -*- coding: utf8 -*-
-from contracts import contract
-from typsy import HasComponents, simple_sts_type, sts_type
 from typsy.special import PGList
-from typsy import TypsyGlobals
-from pyparsing import Suppress, Literal, ZeroOrMore
+from typsy.parseables import ParseableWithOperators
 
 __all__ = ['Intersection']
 
+class Intersection(ParseableWithOperators): 
+     
+    @staticmethod
+    def get_arity():
+        return ParseableWithOperators.TWO_OR_MORE
 
-class Intersection(HasComponents):
-    short = 'intersection'
+    @staticmethod
+    def get_glyphs():
+        return ["^", "∩"]
     
-    @contract(spaces='seq[>=1]')
-    def __init__(self, spaces):
+    def __init__(self, *spaces):
         flattened = []
         
         def alls():
@@ -39,34 +41,7 @@ class Intersection(HasComponents):
         return 'Intersection(%r)' % self.spaces
      
     @staticmethod
-    def get_parsing_expr():
-        S = Suppress
-        inside = simple_sts_type ^ (S('(') - sts_type - S(')'))  
-
-        glyph = S(Literal('∩') | Literal('∩'))
-        expr = inside + glyph - inside + ZeroOrMore(glyph - inside) 
-        
-        def parse_action(s, loc, tokens):  # @UnusedVariable
-            values = list(tokens)
-            return Intersection(values)
-            
-        expr.setParseAction(parse_action)
-        expr.setName('intersection')
-        
-        return False, expr
-        
-    @staticmethod
     def get_parsing_examples():
         return """
-        Space ∩ Numeric
+        Space ^ Numeric
         """
-
-    def __str__(self):
-
-        if TypsyGlobals.use_unicode:
-            glyph = ' ∩ '
-        else:
-            glyph = ' ∩ '
-
-        return glyph.join(map(self.format_sub, self.spaces)) 
-

@@ -1,5 +1,5 @@
 from typsy.library.space import Space
-from typsy.has_comps import ParseableAsString
+from typsy.parseables import ParseableAsString
 
 
 class Numeric(Space, ParseableAsString):

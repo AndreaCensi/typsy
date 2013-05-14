@@ -1,10 +1,11 @@
 from contracts import contract
-from genblocks.interfaces import Space 
-
-from typsy import HasComponents
+from genblocks.interfaces import Space
 from pyparsing import Suppress, Group, ZeroOrMore, Literal
-from typsy.has_comps import sts_type, Parseable, ParseableWithOperators
+from typsy.has_comps import sts_type
+from typsy.parseables import Parseable
 from typsy.special import as_gb
+from typsy.pyparsing_add import wrap_parse_action
+
     
 __all__ = ['FiniteSet']
 
@@ -47,13 +48,12 @@ class FiniteSet(Space, Parseable):
             values = list(tokens[0])
             return FiniteSet(values)
         
-        expr.setParseAction(parse_action)
-        
+        expr.setParseAction(wrap_parse_action(parse_action))
         return True, expr 
 
     @classmethod
-    def get_precedence(klass):  # @UnusedVariable
-        return 0
+    def get_precedence(cls):
+        return Parseable.PRECEDENCE_FINITE_SET
 
     @staticmethod
     def get_parsing_examples():

@@ -1,13 +1,15 @@
 from pyparsing import (alphanums, alphas, Word, oneOf, Combine, Literal, Suppress,
     Optional)
-from typsy.has_comps import HasComponents, Parseable
+
 from typsy.intersection import Intersection
+from typsy.parseables import Parseable
+from typsy.pyparsing_add import wrap_parse_action
 
 
 class Variable(Parseable):
     
-    @staticmethod
-    def get_precedence(self):
+    @classmethod
+    def get_precedence(cls):
         return Parseable.PRECEDENCE_VARIABLE
     
     def __init__(self, name):
@@ -62,7 +64,7 @@ class Variable(Parseable):
             name = tokens[0]
             return Variable(name)
                 
-        expr.addParseAction(my_parse_action)
+        expr.addParseAction(wrap_parse_action(my_parse_action))
         return True, expr
         
     @staticmethod
