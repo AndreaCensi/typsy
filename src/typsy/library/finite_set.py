@@ -15,6 +15,10 @@ class FiniteSet(Space, Parseable):
     def __init__(self, values):
         self.values = as_gb(values)
         
+    @classmethod
+    def create_from_kwargs(cls, **kwargs):
+        return FiniteSet(kwargs['values'])
+    
     def belongs(self, a):
         return a in self.values
 
@@ -50,6 +54,8 @@ class FiniteSet(Space, Parseable):
         
         expr.setParseAction(wrap_parse_action(parse_action))
         return True, expr 
+    
+    
 
     @classmethod
     def get_precedence(cls):

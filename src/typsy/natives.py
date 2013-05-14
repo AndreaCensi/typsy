@@ -29,17 +29,26 @@ __all__ = ['PGNative']
 class PGNative(Parseable):
     short = 'native'
     
+    @classmethod
+    def create_from_kwargs(cls, kwargs):
+        raise Exception()
+    
     def __init__(self, value):
         if isinstance(value, PGNative):
             msg = 'Could not give %r as value of PGNative' % value
             raise ValueError(msg)
         self.value = value
 
-    @staticmethod
-    def get_parsing_expr():
+    @classmethod
+    def get_precedence(cls):
+        return 0
+
+    @classmethod
+    def get_parsing_expr(cls):
         return True, integer  # | floatnumber
             
-    def get_components(self):
+    @classmethod
+    def get_components(cls):
         return []
     
     def match(self, variables, other):  # @UnusedVariable
@@ -47,6 +56,9 @@ class PGNative(Parseable):
             raise FailedMatch(self, other)
     
     def replace_vars(self, variables):  # @UnusedVariable
+        return self
+    
+    def reduce(self):
         return self
     
     def __repr__(self):

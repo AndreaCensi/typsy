@@ -17,7 +17,7 @@ class Mapping(ParseableWithOperators):
 
     @staticmethod
     def get_glyphs():
-        return ["->", "→", "⟶"]
+        return ["⟶", "->", "→"]
         
     def __init__(self, i, o):
         self.i = i
@@ -27,7 +27,7 @@ class Mapping(ParseableWithOperators):
         variables = {}
         res = self.match_components(variables, dict(i=i))
         spec_o = res['o']
-        return spec_o
+        return spec_o.reduce()
     
     def __repr__(self):
         return 'Mapping(%r, %r)' % (self.i, self.o)

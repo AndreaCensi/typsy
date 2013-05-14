@@ -1,7 +1,6 @@
 # -*- coding: utf8 -*-
 from typsy.has_comps import HasComponents, simple_sts_type, sts_type
-from pyparsing import Literal, Suppress, OneOrMore, Or
-from abc import abstractmethod
+from pyparsing import Literal, Suppress, OneOrMore
 from contracts import contract
 from typsy.pyparsing_add import MyOr, wrap_parse_action
 
@@ -45,8 +44,11 @@ class ParseableWithOperators(Parseable):
     precedence = {
         '->': 2,
         '⟶': 2,
-        'x': 2,
-        '^': 2
+        'x': 1,
+        '×': 1,
+        '^': 2,
+        "∩": 1,
+        "^": 1
     }
     
     TWO_OR_MORE = '2+'
@@ -213,23 +215,57 @@ class ParseableWithExpression(Parseable):
             arity
     """
     
-    @staticmethod
-    def get_arity():
+    @classmethod
+    def get_arity(cls):
         """ Number of elements inside """
-        
-    @staticmethod
-    def get_glyph():
-        """ """
-        raise NotImplementedError()
+        return len(cls.get_components())
+#         raise NotImplementedError(cls)
+    
+    @classmethod
+    def get_identifier(cls):
+        """ "SP" """
+        raise NotImplementedError(cls)
+    
+    @classmethod
+    def get_glyph(cls):
+        """ Inner glyph """
+        return ';'
 
     @classmethod
     def get_precedence(cls):
         return Parseable.PRECEDENCE_COMPOSITE
+     
+    @classmethod
+    def get_parsing_expr(klass):
+        L = Literal
+        S = Suppress
+        start = S(L(klass.get_identifier()))
+        glyph = S(L(klass.get_glyph())) 
+        n = klass.get_arity()
+        assert n >= 2
+        inside = sts_type 
+        for i in range(n - 1):
+            inside = inside + glyph + sts_type
     
-    @abstractmethod
+        expr = start + S(L('(')) + inside + S(L(')'))
+        expr.setName(klass.get_identifier())
+        
+        def parse_action(s, loc, tokens):  # @UnusedVariable
+            tokens = list(tokens)
+            return klass(*tokens)
+        
+        expr.setParseAction(parse_action)
+        return True, expr
+    
     def __str__(self):
-        """ Returns a parseable string """
-        raise NotImplementedError()
-    
-    
-    
+        cls = type(self)
+        ss = []
+        cv = list(self.get_components_and_values())
+        for _, v in cv:
+            ss.append(self.format_sub(v))
+
+        glyph = cls.get_glyph()
+        inter = "%s" % glyph
+        identifier = cls.get_identifier()
+        s = identifier + '(' + inter.join(ss) + ')'
+        return s

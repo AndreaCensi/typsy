@@ -1,14 +1,11 @@
 from pyparsing import Or, ParseException
-import sys
 
 
 class MyOr(Or):
     """ Make better error message """
     
     def parseImpl(self, instring, loc, doActions=True):
-        maxExcLoc = -1
         maxMatchLoc = -1
-        maxException = None
 
         exceptions = []
         
@@ -39,17 +36,21 @@ class MyOr(Or):
 
 
 def wrap_parse_action(parse_action):
+    verbose = False
+    
     def f(s, loc, tokens):
-        print('wrap(%s):\n  %r\n -> %r' % (parse_action.__name__, s[loc:], tokens))
+        if verbose:
+            print('wrap(%s):\n  %r\n -> %r' % (parse_action.__name__, s[loc:], tokens))
         try:
             res = parse_action(s, loc, tokens)
-            
-            print(' -> %s' % res)
-            print('    %r' % res)
+            if verbose:
+                print(' -> %s' % res)
+                print('    %r' % res)
             return res
         except (TypeError, Exception) as e:
-            print('Exception while executing %r' % parse_action)
-            print(' %s' % e)
+            if verbose:
+                print('Exception while executing %r' % parse_action)
+                print(' %s' % e)
             raise
     return f
     

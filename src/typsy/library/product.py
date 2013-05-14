@@ -15,7 +15,7 @@ class ProductSpace(ParseableWithOperators, Space):
 
     @staticmethod
     def get_glyphs():
-        return ["x", "×"]
+        return ["×", "x"]
     
     def __init__(self, *spaces):
         self.spaces = PGList(spaces)

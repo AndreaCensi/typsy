@@ -1,10 +1,10 @@
+from .exceptions import FailedMatch, NotMatch
 from contracts import contract
 from contracts.main import get_all_arg_names
-from pyparsing import Forward, ParserElement, Or, opAssoc, Suppress, \
-    operatorPrecedence, Literal
-from .exceptions import FailedMatch, NotMatch
-from typsy.pyparsing_add import MyOr, wrap_parse_action
 from contracts.pyparsing_utils import myOperatorPrecedence
+from pyparsing import Forward, ParserElement, opAssoc, Suppress, Literal
+from typsy.pyparsing_add import MyOr, wrap_parse_action
+from contracts.backported import getfullargspec
 
 ParserElement.enablePackrat()
 # ParserElement.verbose_stacktrace = True
@@ -103,21 +103,27 @@ class HasComponents():
     
     __metaclass__ = HasMeta
     
-    @contract(returns='list(str)')
-    def get_components(self):
+    @classmethod
+    # @contract(returns='list(str)')
+    def get_components(cls):
         """ Returns members of the structure """
-        x = get_all_arg_names(type(self).__init__)
+        x = get_all_arg_names(cls.__init__)
         x.remove('self')
-        return x 
+        return x
     
-
     def get_components_and_values(self):
         """ Returns members of the structure """
-        for k in self.get_components():
+        components = type(self).get_components()
+        
+        for k in type(self).get_components():
+            if not k in self.__dict__:
+                msg = 'Object %r does not have %r' % (self, k)
+                msg += '\n components: %r' % components
+                raise Exception(msg)
             yield k, self.__dict__[k]
 
     def get_components_values(self):
-        cv = dict([(k, self.__dict__[k]) for k in self.get_components()])
+        cv = dict([(k, self.__dict__[k]) for k in type(self).get_components()])
         for k, v in cv.items():
             if not isinstance(v, HasComponents):
                 # self.debug('%r is not a HasComponents' % k)
@@ -143,7 +149,7 @@ class HasComponents():
             raise FailedMatch(self, other, msg)
         
         if same:
-            comps = self.get_components()
+            comps = type(self).get_components()
             spec = dict([k, other.__dict__[k]] for k in comps)
             self.match_components(variables, spec)
     
@@ -205,22 +211,39 @@ class HasComponents():
         return res
     
     def replace_vars(self, variables):
-        # self.debug('replace_vars')
-        klass = type(self)
-        comps = self.get_components()
-        kwargs = {} 
-        for k in comps:
-            try:
-                c = self.__dict__[k]
-            except KeyError:
-                raise Exception('no key %r in %s' % (k, self))
-            
-            HasComponents.debug_level += 1
-            kwargs[k] = c.replace_vars(variables)
-            HasComponents.debug_level -= 1
-        
-        return klass(**kwargs)
+        f = lambda c: c.replace_vars(variables)
+        return self._recursive_create(f)
 
+    def reduce(self):
+        f = lambda c: c.reduce()
+        return self._recursive_create(f)
+
+    def _recursive_create(self, f):
+        new_values = dict([(k, f(c)) 
+                           for k, c in self.get_components_and_values()])
+        try:
+            return type(self).create_from_kwargs(**new_values)
+        except (Exception, TypeError) as e:
+            msg = 'Could not call create_from_kwargs for %r' % type(self)
+            msg += '\n values: %s' % new_values
+            msg += '\n' + str(e)
+            raise Exception(msg)
+            
+     
+    @classmethod
+    def create_from_kwargs(klass, **kwargs):
+        spec = getfullargspec(klass.__init__)
+        if spec.varargs is None:
+            print klass, kwargs
+            return klass(**kwargs)
+        else:
+            assert spec.args == ['self']
+            assert len(kwargs) == 1
+            values = list(kwargs.values())[0]
+            return klass(*values)
+
+    
+    
     def get_variables(self):
         variables = {}
         for v in self.get_components_values().values():
@@ -251,7 +274,7 @@ def format_variables(variables):
     """ Formats on multiline """
     msg = ''
     for k, v in variables.items():
-        msg += '\n- %5s: %s' % (k, v)
+        msg += '\n- %5s: %-35s   %r' % (k, v, v)
     return msg
     
 def sts_symbol(n, s):

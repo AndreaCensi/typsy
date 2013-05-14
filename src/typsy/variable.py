@@ -20,7 +20,12 @@ class Variable(Parseable):
             return False
         return self.name == other.name
         
-    def get_components(self):
+    @classmethod
+    def create_from_kwargs(cls, kwargs):
+        return Variable[kwargs['name']]
+    
+    @classmethod
+    def get_components(cls):
         return []
     
     def match(self, variables, other):
@@ -28,7 +33,7 @@ class Variable(Parseable):
 #                   % (self, other, variables))
         if self.name in variables:
             v = variables[self.name]            
-            variables[self.name] = Intersection([v, other])
+            variables[self.name] = Intersection(v, other)
         else:
             # self.debug('Setting constraint %s satisfies  %s' % (self.name, other))
             variables[self.name] = other
@@ -39,6 +44,9 @@ class Variable(Parseable):
         else:
             return self
  
+    def reduce(self):
+        return self
+    
     def get_variables(self):
         return {self.name: self}
      
