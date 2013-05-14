@@ -1,4 +1,4 @@
-from sts import HasComponents
+from typsy import HasComponents
 from contracts import contract
 
 
