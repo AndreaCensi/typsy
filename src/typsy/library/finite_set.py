@@ -56,7 +56,6 @@ class FiniteSet(Space, Parseable):
         return True, expr 
     
     
-
     @classmethod
     def get_precedence(cls):
         return Parseable.PRECEDENCE_FINITE_SET

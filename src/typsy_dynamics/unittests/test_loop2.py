@@ -12,14 +12,11 @@ class TestLoop(unittest.TestCase):
         spec_o_expected = T('SP({0,1}x{0,2};t∩ Numeric)') 
         
         spec_o = loop_spec(spec_i)
-#         variables = {}
-#         res = loop_spec.match_components(variables, dict(i=spec_i))
-#         spec_o = res['o']
-#         
+
 
         def prints(what, x):
             print('%15s: %s' % (what, x))
-            print('%15s: %r' % (what, x))
+#             print('%15s: %r' % (what, x))
             
         prints('loop', loop_spec)
         prints('spec_i', spec_i)

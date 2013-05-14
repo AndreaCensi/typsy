@@ -9,7 +9,7 @@ class Parseable(HasComponents):
     
     PRECEDENCE_VARIABLE = 0
     PRECEDENCE_SIMPLE_STRING = 0
-    PRECEDENCE_COMPOSITE = 0  # SP(A;B)
+    PRECEDENCE_COMPOSITE = 0.4  # SP(A;B)
     PRECEDENCE_FINITE_SET = 0
     
     @classmethod
@@ -44,11 +44,10 @@ class ParseableWithOperators(Parseable):
     precedence = {
         '->': 2,
         '⟶': 2,
-        'x': 1,
-        '×': 1,
-        '^': 2,
-        "∩": 1,
-        "^": 1
+        'x': 0.3,
+        '×': 0.3,
+        "∩": 0.3,
+        "^": 0.3
     }
     
     TWO_OR_MORE = '2+'
@@ -125,7 +124,7 @@ class ParseableWithOperators(Parseable):
         return False, expr
     
     @classmethod
-    def op_system_parse_action(klass, s, loc, tokens):
+    def op_system_parse_action(klass, s, loc, tokens):  # @UnusedVariable
         # print('here %s %s %s' % (s, loc, tokens))
         vals = list(tokens[0])    
         arity = klass.get_arity()
@@ -165,7 +164,6 @@ class ParseableWithOperators(Parseable):
         elif arity == ParseableWithOperators.TWO_OR_MORE:
             assert len(cv) == 1, 'We expect only one component pointing to a tuple'
             values = cv[0][1]
-            # assert isinstance(values, tuple)
             for v in values:
                 ss.append(self.format_sub(v))
         else:
@@ -244,7 +242,7 @@ class ParseableWithExpression(Parseable):
         n = klass.get_arity()
         assert n >= 2
         inside = sts_type 
-        for i in range(n - 1):
+        for _ in range(n - 1):
             inside = inside + glyph + sts_type
     
         expr = start + S(L('(')) + inside + S(L(')'))
@@ -265,7 +263,7 @@ class ParseableWithExpression(Parseable):
             ss.append(self.format_sub(v))
 
         glyph = cls.get_glyph()
-        inter = "%s" % glyph
+        inter = "%s " % glyph
         identifier = cls.get_identifier()
         s = identifier + '(' + inter.join(ss) + ')'
         return s

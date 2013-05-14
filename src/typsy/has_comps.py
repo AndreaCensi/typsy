@@ -31,7 +31,7 @@ def get_sts_type():
         for cls in HasComponents.klasses.values():
             from typsy.parseables import Parseable
             if not issubclass(cls, Parseable):
-                print('Warn, %r is not Parseable' % cls)
+                # print('Warn, %r is not Parseable' % cls)
                 continue 
 
             from typsy.parseables import ParseableWithOperators
@@ -61,9 +61,9 @@ def get_sts_type():
                     else:
                         complex_exprs.append(expr)
                             
-        print('simple:    %r' % simple_exprs)
-        print('complex:   %r' % complex_exprs)
-        print('operators: %r' % operators)
+        # print('simple:    %r' % simple_exprs)
+        # print('complex:   %r' % complex_exprs)
+        # print('operators: %r' % operators)
         
 
         operand = (S('(') + sts_type + S(')')) | MyOr(complex_exprs + simple_exprs) 
@@ -234,7 +234,6 @@ class HasComponents():
     def create_from_kwargs(klass, **kwargs):
         spec = getfullargspec(klass.__init__)
         if spec.varargs is None:
-            print klass, kwargs
             return klass(**kwargs)
         else:
             assert spec.args == ['self']
