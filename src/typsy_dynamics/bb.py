@@ -3,14 +3,15 @@ from typsy.parseables import  ParseableWithExpression
  
 class BlackBox(ParseableWithExpression):
  
-    @classmethod
-    def get_identifier(cls):
-        return 'BB'
     
     def __init__(self, o, i, t):
         self.i = i
         self.o = o
         self.t = t
+    
+    @classmethod
+    def get_identifier(cls):
+        return 'BB'
         
     def __repr__(self):
         return 'BlackBox(%r,%r,%r)' % (self.o, self.i, self.t)
