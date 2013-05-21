@@ -7,13 +7,17 @@
         T1 <= T2
         
         <= : Type x Type -> bool
-         
+        >= 
+        
     
     Matching types
     
     
-    t1 = ...
-    t2 = ...
+    t1 = Numeric
+    t2 = Integer
+    
+    t1 >= t2
+    
     try:
         res = t.match_expr(t2)
     except NotMatch:
@@ -47,7 +51,7 @@
     Verifying types: ::
         
         t = typsy.parse('Int')
-        t.valid_value(1) # => True
+        1 in t # => True
     
     Verifying 
     
@@ -59,11 +63,11 @@ __all__ = ['parse', 'Typsy', 'HasComponents']
 
 
 class TypsyGlobals:
-    use_unicode = False 
+    use_unicode = True  
 
 from .has_comps import get_sts_type, sts_type, HasComponents, simple_sts_type, sts_symbol
 from . import intersection
-from . import  variable
+from . import variable
 from .library import *
 from .parsing.parsin import parse_spec as parse
 
