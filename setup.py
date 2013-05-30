@@ -10,11 +10,11 @@ def read(fname):
 long_description = read('README.md')
     
 
-setup(name='genblocks',
+setup(name='typsy',
       version=version,
       author="Andrea Censi",
       author_email="andrea@cds.caltech.edu",
-      url='http://github.com/AndreaCensi/genblocks',
+      url='http://github.com/AndreaCensi/typsy',
       description="""  """,
       long_description=long_description,
       keywords="statistics",
@@ -29,7 +29,7 @@ setup(name='genblocks',
         # 'Topic :: Software Development :: Testing'
       ],
 
-      download_url='http://github.com/AndreaCensi/genblocks/tarball/%s' % version,
+      download_url='http://github.com/AndreaCensi/typsy/tarball/%s' % version,
   
       package_dir={'':'src'},
       packages=find_packages('src'),

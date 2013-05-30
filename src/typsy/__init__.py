@@ -62,7 +62,7 @@
 __all__ = ['parse', 'Typsy', 'HasComponents']
 
 
-class TypsyGlobals:
+class TypsyGlobals(object):
     use_unicode = True  
 
 from .has_comps import get_sts_type, sts_type, HasComponents, simple_sts_type, sts_symbol
