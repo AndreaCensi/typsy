@@ -13,8 +13,8 @@ class FailedMatch(NotMatch):
         self.me = me
         self.other = other
         m = 'Could not match:'
-        m += '\n spec %s' % me  
-        m += '\n with %s' % other
+        m += '\n spec %s' % me.__repr__()  
+        m += '\n with %s' % other.__repr__()
         m += '\n' + msg
         NotMatch.__init__(self, msg)
         

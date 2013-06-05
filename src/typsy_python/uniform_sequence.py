@@ -1,15 +1,14 @@
 from typsy.parseables import ParseableWithExpression
  
 
-class StochasticProcess(ParseableWithExpression):
+class UniformSequence(ParseableWithExpression):
+    """ A sequence with objects in the same type. """ 
     
-    def __init__(self, o, t):
+    def __init__(self, o):
         self.o = o
-        self.t = t
         
     def __repr__(self):
-        return 'StochasticProcess(%r,%r)' % (self.o, self.t)
-
+        return 'UniformSequence(%r)' % (self.o)
 
     def belongs(self, a):
         raise NotImplemented
@@ -19,14 +18,14 @@ class StochasticProcess(ParseableWithExpression):
  
     @classmethod
     def get_identifier(cls):
-        return 'SP'
-
+        return 'UniformSequence'
 
     @staticmethod
     def get_parsing_examples():
         return """
-        SP({1};$t)
-        SP({1,2};$t)
+        UniformSequence($t)
+        UniformSequence($t)
         """
+
 
 

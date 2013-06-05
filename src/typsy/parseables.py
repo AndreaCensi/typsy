@@ -217,7 +217,6 @@ class ParseableWithExpression(Parseable):
     def get_arity(cls):
         """ Number of elements inside """
         return len(cls.get_components())
-#         raise NotImplementedError(cls)
     
     @classmethod
     def get_identifier(cls):
@@ -240,7 +239,7 @@ class ParseableWithExpression(Parseable):
         start = S(L(klass.get_identifier()))
         glyph = S(L(klass.get_glyph())) 
         n = klass.get_arity()
-        assert n >= 2
+        assert n >= 1
         inside = sts_type 
         for _ in range(n - 1):
             inside = inside + glyph + sts_type

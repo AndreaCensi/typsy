@@ -1,6 +1,8 @@
 # -*- coding: utf8 -*-
 from typsy.library.space import Space
 from typsy.parseables import ParseableWithOperators
+from typsy.interface import TypsyType, get_typsy_type
+from typsy.library.product import ProductSpace
 
 __all__ = ['Mapping']
 
@@ -23,7 +25,19 @@ class Mapping(ParseableWithOperators):
         self.i = i
         self.o = o
 
-    def __call__(self, i):
+    def __call__(self, *args):
+        # First, lets get types if they are not already
+        def map_to_type(x):
+            if isinstance(x, TypsyType):
+                return x
+            else:
+                return get_typsy_type(x)
+        args = tuple(map(map_to_type, args))
+        if len(args) == 1:
+            i = args[0]
+        else:
+            i = ProductSpace(*args)
+            
         variables = {}
         res = self.match_components(variables, dict(i=i))
         spec_o = res['o']

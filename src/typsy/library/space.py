@@ -1,7 +1,4 @@
 from typsy.has_comps import HasComponents
-from pyparsing import Literal, Suppress
-from abc import abstractmethod
-from contracts import contract
 from typsy.parseables import ParseableAsString
 
 class Space(HasComponents):

@@ -56,7 +56,7 @@
     Verifying 
     
         typsy_get_type(f) #=> Int->Int
-         
+        
 
 """
 __all__ = ['parse', 'Typsy', 'HasComponents']

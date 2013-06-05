@@ -5,6 +5,9 @@ from contracts.pyparsing_utils import myOperatorPrecedence
 from pyparsing import Forward, ParserElement, opAssoc, Suppress, Literal
 from typsy.pyparsing_add import MyOr, wrap_parse_action
 from contracts.backported import getfullargspec
+from contracts.metaclass import ContractsMeta
+from contracts.utils import indent
+import traceback
 
 ParserElement.enablePackrat()
 # ParserElement.verbose_stacktrace = True
@@ -78,9 +81,10 @@ def get_sts_type():
         
         return sts_type_final
     
-class HasMeta(type):
+    
+class HasMeta(ContractsMeta):
 
-    def __init__(cls, clsname, bases, clsdict):  # @UnusedVariable
+    def __init__(cls, clsname, bases, clsdict):  # @UnusedVariable @NoSelf
         # Do not do this for the superclasses 
         if clsname in ['HasComponents', 'Parseable', 'ParseableWithOperators',
                        'ParseableWithExpression', 'ParseableAsString']:
@@ -91,8 +95,9 @@ class HasMeta(type):
         if sts_type_final is not None:
             print('warning, adding %r but already created parsing' % cls)
             
+from .interface import TypsyType
 
-class HasComponents():
+class HasComponents(TypsyType):
     """ 
         
         t1 = 'SP(A;1)'
@@ -103,12 +108,17 @@ class HasComponents():
     
     __metaclass__ = HasMeta
     
+    def __init__(self):
+        pass
+    
     @classmethod
     # @contract(returns='list(str)')
     def get_components(cls):
         """ Returns members of the structure """
         x = get_all_arg_names(cls.__init__)
-        x.remove('self')
+        # XXX: looks like we changed something in contracts
+        if 'self' in x:
+            x.remove('self')
         return x
     
     def get_components_and_values(self):
@@ -130,6 +140,7 @@ class HasComponents():
                 pass
         return cv
     
+    @contract(other='TypsyType')
     def match(self, variables, other):
         # self.debug('match generic (vars: %s, other=%s)' % (variables, other))
         from typsy.variable import Variable
@@ -141,8 +152,8 @@ class HasComponents():
         sub = issubclass(self.__class__, other.__class__)
         if not sub:
             msg = 'Could not match:\n'
-            msg += '- self  %r\n' % self
-            msg += '- other %r\n' % other
+            msg += '- self  %s\n' % self.__repr__()
+            msg += '- other %s\n' % other.__repr__()
             msg += 'because classes dont match:\n'
             msg += '- self.class =  %s\n' % self.__class__ 
             msg += '- other.class =  %s\n' % other.__class__
@@ -226,7 +237,7 @@ class HasComponents():
         except (Exception, TypeError) as e:
             msg = 'Could not call create_from_kwargs for %r' % type(self)
             msg += '\n values: %s' % new_values
-            msg += '\n' + str(e)
+            msg += '\n' + indent(traceback.format_exc(e), '> ')
             raise Exception(msg)
             
      
@@ -236,13 +247,12 @@ class HasComponents():
         if spec.varargs is None:
             return klass(**kwargs)
         else:
-            assert spec.args == ['self']
+            # assert spec.args == ['self']
+            assert spec.args == []
             assert len(kwargs) == 1
             values = list(kwargs.values())[0]
             return klass(*values)
 
-    
-    
     def get_variables(self):
         variables = {}
         for v in self.get_components_values().values():
