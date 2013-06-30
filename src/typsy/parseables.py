@@ -259,7 +259,13 @@ class ParseableWithExpression(Parseable):
         ss = []
         cv = list(self.get_components_and_values())
         for _, v in cv:
-            ss.append(self.format_sub(v))
+            
+            try:
+                vs = self.format_sub(v)
+            except:
+                vs = '!!!'
+
+            ss.append(vs)
 
         glyph = cls.get_glyph()
         inter = "%s " % glyph

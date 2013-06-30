@@ -1,4 +1,5 @@
 from typsy.interface import typsy_type, set_typsy_type, get_typsy_type
+from typsy.parsing.parsin import parse_spec
 
 # def wrap(f):
 #     """ 
@@ -23,7 +24,6 @@ def test_inference():
         return zip(a, b)
     
     class UserList(list):
-        
         def get_typsy_type(self):
             from typsy.parsing.parsin import parse_spec
             return parse_spec('UniformSequence(A)')
@@ -50,5 +50,46 @@ def test_inference():
     print sp2
     assert not sp1 == sp2, (sp1, sp2)
     
+    
+def test_variable_names_replacement():
+    t = parse_spec('UniformSequence(A) x UniformSequence(B) -> UniformSequence(A x B)')
+
+    variables = t.get_variables()
+    assert variables == set(['A', 'B']), variables
+    
+    
+def test_name_change():
+    
+    t = parse_spec('UniformSequence(A) x UniformSequence(B) -> UniformSequence(A x B)')
+    t2 = t.replace_used_variables(already_taken=set(['A']), substitutions={})
+    
+    print t2
+    variables = t2.get_variables()
+    assert  not 'A' in variables, variables
+    assert  'B' in variables, variables
+
+
+
+def test_name_change1():
+    
+    t = parse_spec('UniformSequence(A) -> UniformSequence(B)')
+    t2 = t.replace_used_variables(already_taken=set(['A']), substitutions={})
+    
+    print t2
+    variables = t2.get_variables()
+    assert  not 'A' in variables, variables
+    assert  'B' in variables, variables
+
+
+    
+    
+    
+    
+
+
+
+
+
+
     
     

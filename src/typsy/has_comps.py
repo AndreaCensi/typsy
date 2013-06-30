@@ -5,9 +5,10 @@ from contracts.pyparsing_utils import myOperatorPrecedence
 from pyparsing import Forward, ParserElement, opAssoc, Suppress, Literal
 from typsy.pyparsing_add import MyOr, wrap_parse_action
 from contracts.backported import getfullargspec
-from contracts.metaclass import ContractsMeta
+from contracts import ContractsMeta
 from contracts.utils import indent
 import traceback
+from contracts.interface import describe_type
 
 ParserElement.enablePackrat()
 # ParserElement.verbose_stacktrace = True
@@ -124,7 +125,6 @@ class HasComponents(TypsyType):
     def get_components_and_values(self):
         """ Returns members of the structure """
         components = type(self).get_components()
-        
         for k in type(self).get_components():
             if not k in self.__dict__:
                 msg = 'Object %r does not have %r' % (self, k)
@@ -229,9 +229,18 @@ class HasComponents(TypsyType):
         f = lambda c: c.reduce()
         return self._recursive_create(f)
 
+    @contract(returns='TypsyType')
     def _recursive_create(self, f):
-        new_values = dict([(k, f(c)) 
-                           for k, c in self.get_components_and_values()])
+        new_values = {}
+        
+        for k, c in self.get_components_and_values():
+            c2 = f(c)
+            if not isinstance(c2, TypsyType):
+                msg = ('Could not transform %r (%s, %s) using %s: got %s' % 
+                       (k, c, describe_type(c), f, describe_type(c2)))
+                raise ValueError(msg)
+            new_values[k] = c2
+            
         try:
             return type(self).create_from_kwargs(**new_values)
         except (Exception, TypeError) as e:
@@ -243,6 +252,10 @@ class HasComponents(TypsyType):
      
     @classmethod
     def create_from_kwargs(klass, **kwargs):
+        for k, v in kwargs.items():
+            if not isinstance(v, TypsyType):
+                msg = 'Expected a type for %r, got %s' % (k, describe_type(v))
+                raise ValueError(msg)
         spec = getfullargspec(klass.__init__)
         if spec.varargs is None:
             return klass(**kwargs)
@@ -254,10 +267,28 @@ class HasComponents(TypsyType):
             return klass(*values)
 
     def get_variables(self):
-        variables = {}
-        for v in self.get_components_values().values():
-            variables.update(v.get_variables())
+        """ 
+            Returns a set of names with the variables names used 
+            in this expression. 
+        """
+        variables = set()
+        for k, v in self.get_components_values().items():
+            vs = v.get_variables()
+            print('%s: %s' % (k, vs))
+            variables.update(vs)
+            
         return variables
+    
+    @contract(already_taken='set(str)', substitutions='dict(str:str)',
+              returns='TypsyType')  # returns='tuple(*, dict(str:str) )')
+    def replace_used_variables(self, already_taken, substitutions):
+        """ 
+            Returns a new type, where the variables have been substituted
+            if they clashed with the already taken variables.
+        """
+        def replace(comp):
+            return comp.replace_used_variables(already_taken, substitutions)
+        return self._recursive_create(replace)
     
     def debug(self, s):
         print(' ' * (1 + HasComponents.debug_level) + '-' + (' %60s ' % self) + (s))

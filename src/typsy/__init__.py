@@ -59,6 +59,7 @@
         
 
 """
+import warnings
 __all__ = ['parse', 'Typsy', 'HasComponents']
 
 
@@ -70,5 +71,13 @@ from . import intersection
 from . import variable
 from .library import *
 from .parsing.parsin import parse_spec as parse
+
+
+warnings.warn('Loading everything now, for testing.')
+import typsy_python
+import typsy_boot
+import typsy_dynamics
+
+
 
 

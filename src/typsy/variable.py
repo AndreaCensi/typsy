@@ -4,6 +4,7 @@ from pyparsing import (alphanums, alphas, Word, oneOf, Combine, Literal, Suppres
 from typsy.intersection import Intersection
 from typsy.parseables import Parseable
 from typsy.pyparsing_add import wrap_parse_action
+from contracts import contract
 
 
 class Variable(Parseable):
@@ -48,7 +49,7 @@ class Variable(Parseable):
         return self
     
     def get_variables(self):
-        return {self.name: self}
+        return set([self.name])
      
     def __str__(self):
         if len(self.name) == 1:
@@ -83,3 +84,32 @@ class Variable(Parseable):
         $b
         """
         
+    def replace_used_variables(self, already_taken, substitutions):
+        if self.name in substitutions:
+            # We have already decided how to transform this one
+            return Variable(substitutions[self.name])
+        
+        if self.name in already_taken:
+            # we need to substitute this one
+            dont_use = set([self.name]) | set(already_taken) | set(substitutions.values())
+            new_name = get_new_name(dont_use=dont_use)
+            substitutions[self.name] = new_name
+            return Variable(new_name)
+        
+        return Variable(self.name)
+        
+@contract(returns='str', dont_use='set(str)')    
+def get_new_name(dont_use):
+    """ Returns a new name, not included in "dont_use". """
+    variables = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+                  'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'Z']
+    for v in variables:
+        if not v in dont_use:
+            return v
+        
+    # TODO: need more names
+    raise ValueError('xxx')
+    
+    
+    
+
