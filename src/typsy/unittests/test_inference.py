@@ -30,10 +30,16 @@ def test_inference():
         
     s1 = UserList([1, 2, 3, 4])
     s2 = UserList([1.1, 2.1, 3.2, 4.3])
+    t1 = get_typsy_type(s1)
+    t2 = get_typsy_type(s2)
     ftype = get_typsy_type(zip1)
     res1 = ftype(get_typsy_type(s1), get_typsy_type(s2))
     res2 = ftype(s1, s2)
     assert res1 == res2
+    
+    print('function type: %s' % ftype)
+    print('        input: %s, %s' % (t1, t2))
+    print('       result: %s' % (res1))
     
     # Now, notice that we shouldn't get
     # => UniformSequence(A x A)

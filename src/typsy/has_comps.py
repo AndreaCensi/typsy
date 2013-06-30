@@ -1,14 +1,14 @@
 from .exceptions import FailedMatch, NotMatch
-from contracts import contract
+from .interface import TypsyType
+from contracts import ContractsMeta, contract
+from contracts.backported import getfullargspec
+from contracts.interface import describe_type
 from contracts.main import get_all_arg_names
 from contracts.pyparsing_utils import myOperatorPrecedence
+from contracts.utils import indent
 from pyparsing import Forward, ParserElement, opAssoc, Suppress, Literal
 from typsy.pyparsing_add import MyOr, wrap_parse_action
-from contracts.backported import getfullargspec
-from contracts import ContractsMeta
-from contracts.utils import indent
 import traceback
-from contracts.interface import describe_type
 
 ParserElement.enablePackrat()
 # ParserElement.verbose_stacktrace = True
@@ -96,7 +96,6 @@ class HasMeta(ContractsMeta):
         if sts_type_final is not None:
             print('warning, adding %r but already created parsing' % cls)
             
-from .interface import TypsyType
 
 class HasComponents(TypsyType):
     """ 
@@ -289,6 +288,18 @@ class HasComponents(TypsyType):
         def replace(comp):
             return comp.replace_used_variables(already_taken, substitutions)
         return self._recursive_create(replace)
+    
+    def equal_up_to_names(self, other):
+        """
+             Checks that two types are the sames up to the names of variables.
+             
+             We can check this by substituting the variables with new names.
+        """
+        already_taken = self.get_variables() | other.get_variables()
+        a = self.replace_used_variables(already_taken.copy(), substitutions={})
+        b = other.replace_used_variables(already_taken.copy(), substitutions={})
+        return a == b
+        
     
     def debug(self, s):
         print(' ' * (1 + HasComponents.debug_level) + '-' + (' %60s ' % self) + (s))

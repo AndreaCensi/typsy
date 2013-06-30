@@ -96,6 +96,7 @@ class Variable(Parseable):
             substitutions[self.name] = new_name
             return Variable(new_name)
         
+        substitutions[self.name] = self.name
         return Variable(self.name)
         
 @contract(returns='str', dont_use='set(str)')    

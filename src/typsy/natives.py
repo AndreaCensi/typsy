@@ -55,6 +55,9 @@ class PGNative(Parseable):
         if not(self.value == other.value):
             raise FailedMatch(self, other)
     
+    def replace_used_variables(self, already_taken, substitutions):
+        return self
+    
     def replace_vars(self, variables):  # @UnusedVariable
         return self
     

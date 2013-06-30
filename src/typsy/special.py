@@ -48,7 +48,7 @@ class PGList(list, HasComponents):
 #             msg += '\n' + indent(traceback.format_exc(e), '> ')
 #             raise Exception(msg)
 
-# 
+ 
 #     def replace_vars(self, variables):
 #         repl = []
 #         for c in self:

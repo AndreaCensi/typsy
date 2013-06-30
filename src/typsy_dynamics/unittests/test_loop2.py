@@ -1,6 +1,7 @@
 # -*- coding: utf8 -*-
 import unittest
 from typsy import parse as T
+from typsy.interface import TypsyType
 
 # (P((BB(U;Y;t))x(BB(Y;U;t))))->(SP(P((Y)x(U))))
 # BB(U;Y;t) x BB(Y;U;t)-> SP(P(YxU))
@@ -16,13 +17,14 @@ class TestLoop(unittest.TestCase):
 
         def prints(what, x):
             print('%15s: %s' % (what, x))
-#             print('%15s: %r' % (what, x))
             
         prints('loop', loop_spec)
         prints('spec_i', spec_i)
         prints('spec_o_expected', spec_o_expected)
         prints('spec_o', spec_o)
 
-        self.assertEqual(spec_o_expected, spec_o) 
+        assert spec_o.equal_up_to_names(spec_o_expected)
+                
+        # self.assertEqual(spec_o_expected, spec_o) 
         
         

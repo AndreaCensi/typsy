@@ -3,6 +3,7 @@ from typsy.has_comps import HasComponents, simple_sts_type, sts_type
 from pyparsing import Literal, Suppress, OneOrMore
 from contracts import contract
 from typsy.pyparsing_add import MyOr, wrap_parse_action
+from typsy import TypsyGlobals
 
     
 class Parseable(HasComponents):
@@ -79,8 +80,11 @@ class ParseableWithOperators(Parseable):
     @classmethod
     def get_glyph_for_output(klass):
         glyphs = klass.get_glyphs()
-        # TODO: implement unicode switch
-        return glyphs[0]
+        if TypsyGlobals.use_unicode:
+            return glyphs[0]
+        else:
+            # TODO: implement unicode switch
+            return glyphs[-1]
         
     @classmethod
     def get_precedence(klass):
