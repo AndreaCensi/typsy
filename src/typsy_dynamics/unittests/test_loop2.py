@@ -1,7 +1,7 @@
 # -*- coding: utf8 -*-
 import unittest
 from typsy import parse as T
-from typsy.interface import TypsyType
+
 
 # (P((BB(U;Y;t))x(BB(Y;U;t))))->(SP(P((Y)x(U))))
 # BB(U;Y;t) x BB(Y;U;t)-> SP(P(YxU))
