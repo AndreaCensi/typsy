@@ -1,7 +1,9 @@
-from contracts import ContractsMeta
-from contracts import contract, new_contract, describe_value
 from abc import abstractmethod
+
+from contracts import ContractsMeta, contract, new_contract, describe_value
+
 from .utils import make_generic_decorator
+
 
 class TypsyAssignments(dict):
     pass
@@ -23,9 +25,9 @@ def is_typsy_type(x):
 new_contract('TypsyType', is_typsy_type)
     
 class TypsyType(object):
+
     __metaclass__ = ContractsMeta
 
-        
     @contract(returns=TypsyAssignments)
     def belongs(self, value):
         """ 

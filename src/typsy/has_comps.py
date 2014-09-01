@@ -1,14 +1,17 @@
-from .exceptions import FailedMatch, NotMatch
-from .interface import TypsyType
+import traceback
+
 from contracts import ContractsMeta, contract
+from contracts import describe_type
 from contracts.backported import getfullargspec
-from contracts.interface import describe_type
 from contracts.main import get_all_arg_names
 from contracts.pyparsing_utils import myOperatorPrecedence
 from contracts.utils import indent
 from pyparsing import Forward, ParserElement, opAssoc, Suppress, Literal
-from typsy.pyparsing_add import MyOr, wrap_parse_action
-import traceback
+
+from .exceptions import FailedMatch, NotMatch
+from .interface import TypsyType
+from .pyparsing_add import MyOr, wrap_parse_action
+
 
 ParserElement.enablePackrat()
 # ParserElement.verbose_stacktrace = True

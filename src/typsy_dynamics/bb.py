@@ -15,7 +15,6 @@ class BlackBox(ParseableWithExpression):
         
     def __repr__(self):
         return 'BlackBox(%r,%r,%r)' % (self.o, self.i, self.t)
-
     
     def belongs(self, a):
         raise NotImplemented
